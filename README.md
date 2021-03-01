@@ -26,3 +26,4 @@ Json Serialisation
 
 * Run the Entity Framework migration command to generate the database table creations based on your models.
   * dotnet ef migrations add *MigrationDescriptionName*
+  * dotnet ef database update -Publishes the migration changes
