@@ -1,8 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using AutoMapper;
 using Base_API_Structure.Data;
 using Base_API_Structure.DTOs;
 using Base_API_Structure.Models;
+using Base_API_Structure.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,11 +19,13 @@ namespace Base_API_Structure.Controllers
     {
         private readonly IDatabaseRepository _repository;
         private readonly IMapper _mapper;
+        private readonly IFileService _fileService;
 
-        public BaseController(IDatabaseRepository repository, IMapper mapper) 
+        public BaseController(IDatabaseRepository repository, IMapper mapper, IFileService fileService) 
         {
             _repository = repository;
             _mapper = mapper;
+            _fileService = fileService;
         }
 
         [HttpGet]
@@ -90,6 +96,38 @@ namespace Base_API_Structure.Controllers
             _repository.SaveChanges();
 
             return NoContent();
+        }
+
+        // upload file(s) to server that palce under path: rootDirectory/subDirectory
+        [HttpPost("upload")]
+        public IActionResult UploadFile([FromForm(Name = "files")] List<IFormFile> files, [FromForm(Name = "subDirectory")] string subDirectory)
+        {
+            try
+            {
+                _fileService.SaveFile(files, subDirectory);
+
+                return Ok(new { files.Count, Size = _fileService.ConvertSize(files.Sum(f => f.Length)) });
+            }
+            catch (Exception exception)
+            {
+                return BadRequest($"Error: {exception.Message}");
+            }
+        }
+
+        // download file(s) to client according path: rootDirectory/subDirectory with single zip file
+        [HttpGet("download/{subDirectory}")]
+        public IActionResult DownloadFiles(string subDirectory)
+        {
+            try
+            {
+                var (fileType, archiveData, archiveName) = _fileService.GetFile(subDirectory);
+
+                return File(archiveData, fileType, archiveName);
+            }
+            catch (Exception exception)
+            {
+                return BadRequest($"Error: {exception.Message}");
+            }
         }
     }
 }

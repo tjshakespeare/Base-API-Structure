@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Base_API_Structure.Data;
+using Base_API_Structure.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -38,6 +39,7 @@ namespace Base_API_Structure
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             services.AddScoped<IDatabaseRepository, SqlBaseDatabaseRepository>();
+            services.AddScoped<IFileService, ServerFileService>();
 
             services.AddSwaggerGen(c =>
             {
